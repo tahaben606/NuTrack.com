@@ -1,0 +1,100 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "password": "password123"
+        },
+        {
+            "id": 2,
+            "firstName": "taha",
+            "lastName": "ben",
+            "email": "tahaben@gmail.com",
+            "phone": "",
+            "dateOfBirth": "2025-05-31",
+            "password": "scrypt:32768:8:1$TYfzUyaljdKifPIN$e11241ce43a5f4a14caa71de76a99c1770444c32364d104834b6affaf839d5cfa5b5851027a6c8cd54a57f164c486dac39f8d88a4e305dfcaeaedbdaa1a9db16"
+        },
+        {
+            "id": 3,
+            "firstName": "test",
+            "lastName": "test",
+            "email": "test@test.com",
+            "phone": "",
+            "dateOfBirth": "2025-06-02",
+            "password": "scrypt:32768:8:1$l0PfMaVL1wnOGb0g$e0e6c87f8be403e76bf0750b691c6203075e8fd0b59a27f2932ed6352bc9b058e90b2f720ff51d5472d4da2e9bca2b4dde6b4009824e90d9ce857cd7f41bd7e8"
+        },
+        {
+            "id": 4,
+            "firstName": "baben",
+            "lastName": "baben",
+            "email": "beben@gmail.com",
+            "phone": "",
+            "dateOfBirth": "2025-05-23",
+            "password": "scrypt:32768:8:1$LMMKIXUECc8q5YRz$545634f07779057f969451bd212d9423e1d8a1b7893606465c6f5e920a864a7ee5e047d50f817bc23506b8b7be88238c76a3cd3172ff2091e24d4a7f94abaecc"
+        },
+        {
+            "id": 5,
+            "firstName": "taha",
+            "lastName": "ben",
+            "email": "testtest@gmail.com",
+            "phone": "",
+            "dateOfBirth": "",
+            "password": "scrypt:32768:8:1$ULSz6pD6dPvW4Ahd$fbc2ac03451975ed45e9fcdbf36add90e2fef80b65dd82dc3bd7f9c183db7cf4d40b58fe86b48cf67c28dadfb191e9eca5d8ecb6e1431eeec0bf737c22dadcbf"
+        }
+    ],
+    "recipes": [
+        {
+            "id": 1,
+            "name": "Pasta",
+            "chef": "Chef Taha",
+            "description": "Delicious pasta with tomato sauce.",
+            "ingredients": [
+                "tomato",
+                "pasta",
+                "basil"
+            ],
+            "quantities": [
+                "2 cups",
+                "200g",
+                "10g"
+            ],
+            "calories": 400,
+            "timeToComplete": "30 minutes",
+            "image": "https://images.unsplash.com/photo-1595295333158-4742f28fbd85?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+            "rating": 5,
+            "video": "https://www.youtube.com/watch?v=hPr-Yc92qaY&ab_channel=A2ZHighlights",
+            "steps": [
+                "Cook pasta in boiling salted water until al dente. Drain and set aside.",
+                "In a pan, sautÃ© tomatoes until softened. Add basil and season with salt and pepper.",
+                "Toss the cooked pasta in the tomato sauce and serve hot."
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Pizza",
+            "chef": "Chef Maria",
+            "description": "Classic Margherita pizza.",
+            "ingredients": [
+                "tomato",
+                "cheese",
+                "basil"
+            ],
+            "quantities": [
+                "1 cup",
+                "150g",
+                "10g"
+            ],
+            "calories": 800,
+            "timeToComplete": "45 minutes",
+            "image": "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+            "rating": 4,
+            "video": "https://www.youtube.com/watch?v=hPr-Yc92qaY&ab_channel=A2ZHighlights",
+            "steps": [
+                "Preheat the oven to 220Â°C (425Â°F).",
+                "Spread tomato sauce on the pizza base, then top with cheese and basil.",
+                "Bake for 10-12 minutes or until the crust is golden and cheese is bubbly."
+            ]
+        }
+    ]
+}

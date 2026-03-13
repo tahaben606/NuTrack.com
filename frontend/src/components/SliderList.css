@@ -1,0 +1,94 @@
+/* Slider Container */
+.slider-container {
+    position: relative;
+    width: 100vw;
+    /* Take up full width of the viewport */
+    height: 100vh;
+    /* Take up full height of the viewport */
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+/* Slide Wrapper */
+.slides {
+    display: flex;
+    width: 300%;
+    /* 3 slides, so it's 100% * 3 */
+    transition: transform 0.5s ease;
+    height: 100%;
+    /* Ensure slides take full height of the container */
+}
+
+/* Individual Slide */
+.slide {
+    width: 33.33%;
+    /* Divide 100% by 3 slides */
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    /* Center vertically */
+    justify-content: center;
+    /* Center horizontally */
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    /* Center text */
+    position: relative;
+    /* Make sure the content stays centered */
+}
+
+/* Content Container inside each slide */
+.slide-content {
+    text-align: center;
+    /* Center the text inside the container */
+    z-index: 10;
+}
+
+/* Links in each slide */
+.slide-content a {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    margin: 10px;
+    padding: 10px 20px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    display: inline-block;
+    /* So it doesn’t break the layout */
+}
+
+.slide-content a:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Navigation Buttons */
+.arrow-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0);
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 50%;
+    padding-left: 15px;
+    padding-right: 15px;
+    border: #fff solid 3px;
+}
+
+.arrow-prev {
+    left: 10px;
+}
+
+.arrow-next {
+    right: 10px;
+}
