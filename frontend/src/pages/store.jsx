@@ -12,9 +12,12 @@ import {
   X,
   Utensils,
   Plus,
+  Camera,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import "./store.css";
-import defaultRecipes from "./recipedata";
+import { fetchRecipes, analyzeFridge, generateRecipe } from "../api/recipes";
 
 const Store = () => {
   // State declarations
@@ -27,31 +30,47 @@ const Store = () => {
   const [recipes, setRecipes] = useState([]);
   const [allIngredients, setAllIngredients] = useState([]);
 
-  // Load recipes from both sources when component mounts
+  const [isAnalyzingFridge, setIsAnalyzingFridge] = useState(false);
+  const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load recipes from backend when component mounts
   useEffect(() => {
-    const localRecipes = JSON.parse(localStorage.getItem("userRecipes")) || [];
-    const combinedRecipes = [...defaultRecipes, ...localRecipes];
-    setRecipes(combinedRecipes);
-    
-    // Calculate all unique ingredients
-    const ingredients = [
-      ...new Set(
-        combinedRecipes.flatMap((recipe) =>
-          recipe.ingredients.map((ing) => ing.toLowerCase().trim())
-        )
-      ),
-    ].sort();
-    setAllIngredients(ingredients);
+    const loadBackendRecipes = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchRecipes();
+        setRecipes(data);
+
+        // Calculate all unique ingredients
+        const ingredients = [
+          ...new Set(
+            data.flatMap((recipe) =>
+              (recipe.ingredients || []).map((ing) => ing.toLowerCase().trim())
+            )
+          ),
+        ].sort();
+        setAllIngredients(ingredients);
+      } catch (error) {
+        console.error("Error loading recipes:", error);
+        setErrorMessage("Could not connect to the server. Please ensure the backend is running.");
+
+        // Fallback to local storage recipes if backend fails
+        const localRecipes = JSON.parse(localStorage.getItem("userRecipes")) || [];
+        setRecipes(localRecipes);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBackendRecipes();
   }, []);
 
   // Filter ingredients based on search term
   const filteredIngredients = allIngredients.filter((ingredient) =>
     ingredient.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // User token (mocked from localStorage)
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = user?.id;
 
   // Add ingredient to selected list if valid and not duplicate
   const addIngredient = (ingredient) => {
@@ -92,6 +111,70 @@ const Store = () => {
     if (e.key === "Enter" && searchTerm.trim() !== "") {
       e.preventDefault();
       addIngredient(searchTerm.trim());
+    }
+  };
+
+  const handleFridgeCapture = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsAnalyzingFridge(true);
+    setErrorMessage("");
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      try {
+        const ingredients = await analyzeFridge(base64Image);
+        
+        if (ingredients && ingredients.length > 0) {
+          // Add valid ingredients from the AI to the selection
+          const newIngredients = ingredients.filter(
+            ing => !selectedIngredients.includes(ing)
+          );
+          if (newIngredients.length > 0) {
+            setSelectedIngredients(prev => [...prev, ...newIngredients]);
+            // Also update allIngredients if these are new
+            setAllIngredients(prev => [...new Set([...prev, ...newIngredients])].sort());
+          }
+        } else {
+          setErrorMessage("AI didn't find any identifiable ingredients in this image.");
+        }
+      } catch (error) {
+        console.error("Error analyzing fridge:", error);
+        setErrorMessage(error.message || "Could not analyze image. Try again.");
+      } finally {
+        setIsAnalyzingFridge(false);
+        e.target.value = null;
+      }
+    };
+  };
+
+  const handleGenerateRecipe = async () => {
+    if (selectedIngredients.length === 0) return;
+
+    setIsGeneratingRecipe(true);
+    setErrorMessage("");
+
+    try {
+      const data = await generateRecipe(selectedIngredients);
+
+      if (data.recipe) {
+        // Update state
+        setRecipes(prev => [data.recipe, ...prev]);
+        setAllIngredients(prev => {
+          const newIngs = (data.recipe.ingredients || [])
+            .map(ing => ing.toLowerCase().trim())
+            .filter(ing => !prev.includes(ing));
+          return [...prev, ...newIngs].sort();
+        });
+      }
+    } catch (error) {
+      console.error("Error generating recipe:", error);
+      setErrorMessage(error.message || "Could not generate recipe. Try again.");
+    } finally {
+      setIsGeneratingRecipe(false);
     }
   };
 
@@ -182,7 +265,7 @@ const Store = () => {
             <input
               type="text"
               className="search-input"
-              placeholder="Search for ingredients..."
+              placeholder="Search ingredients (e.g., 'tomato')..."
               value={searchTerm}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
@@ -198,7 +281,20 @@ const Store = () => {
                 <X size={16} />
               </button>
             )}
+            <div className="fridge-capture-wrapper">
+              <input
+                type="file"
+                id="fridge-capture"
+                accept="image/*"
+                onChange={handleFridgeCapture}
+                style={{ display: "none" }}
+              />
+              <label htmlFor="fridge-capture" className="fridge-capture-button" title="Capture Fridge">
+                {isAnalyzingFridge ? <Loader2 className="spinner-icon" size={18} /> : <Camera size={18} />}
+              </label>
+            </div>
           </div>
+          <p className="search-hint">Please use singular form for ingredients (e.g., 'onion' not 'onions')</p>
 
           {isDropdownVisible && filteredIngredients.length > 0 && (
             <div className="ingredients-dropdown">
@@ -244,9 +340,8 @@ const Store = () => {
         <div className="filter-controls">
           <div className="filter-buttons">
             <button
-              className={`filter-button ${
-                filterType === "calories" ? "active" : ""
-              }`}
+              className={`filter-button ${filterType === "calories" ? "active" : ""
+                }`}
               onClick={() => toggleFilter("calories")}
             >
               <Flame size={16} />
@@ -262,9 +357,8 @@ const Store = () => {
             </button>
 
             <button
-              className={`filter-button ${
-                filterType === "quantity" ? "active" : ""
-              }`}
+              className={`filter-button ${filterType === "quantity" ? "active" : ""
+                }`}
               onClick={() => toggleFilter("quantity")}
             >
               <Filter size={16} />
@@ -287,9 +381,16 @@ const Store = () => {
       <main className="recipes-container">
         {selectedIngredients.length === 0 ? (
           <div className="default-view">
-
+            <div className="default-icon">
+              <Utensils size={48} />
+            </div>
             <h2>What's in your fridge?</h2>
             <p>Add ingredients to find matching recipes</p>
+          </div>
+        ) : isLoading ? (
+          <div className="loading-view">
+            <Loader2 className="spinner-icon" size={40} />
+            <p>Fetching delicious recipes...</p>
           </div>
         ) : filteredRecipes.length > 0 ? (
           filteredRecipes.map((recipe) => (
@@ -349,6 +450,26 @@ const Store = () => {
           <div className="no-results">
             <p>No recipes found with your ingredients</p>
             <p>Try adding different ingredients</p>
+          </div>
+        )}
+
+        {selectedIngredients.length > 0 && (
+          <div className="ai-suggestion-footer">
+            <div className="divider">
+              <span>OR</span>
+            </div>
+            <p className="ai-suggestion-text">Didn't find what you were looking for?</p>
+            <button
+              className="generate-recipe-button"
+              onClick={handleGenerateRecipe}
+              disabled={isGeneratingRecipe}
+            >
+              {isGeneratingRecipe ? (
+                <><Loader2 className="spinner-icon" size={20} /> Generating Magic...</>
+              ) : (
+                <><Sparkles size={20} /> Create a unique AI Recipe</>
+              )}
+            </button>
           </div>
         )}
       </main>

@@ -222,16 +222,16 @@ const Home = () => {
               <h3>Product</h3>
               <ul>
                 <li>
-                  <a href="#">Features</a>
+                  <button type="button">Features</button>
                 </li>
                 <li>
-                  <a href="#">Recipes</a>
+                  <button type="button">Recipes</button>
                 </li>
                 <li>
-                  <a href="#">Meal Plans</a>
+                  <button type="button">Meal Plans</button>
                 </li>
                 <li>
-                  <a href="#">Nutrition Guide</a>
+                  <button type="button">Nutrition Guide</button>
                 </li>
               </ul>
             </div>
@@ -240,16 +240,16 @@ const Home = () => {
               <h3>Company</h3>
               <ul>
                 <li>
-                  <a href="#">About Us</a>
+                  <button type="button">About Us</button>
                 </li>
                 <li>
-                  <a href="#">Careers</a>
+                  <button type="button">Careers</button>
                 </li>
                 <li>
-                  <a href="#">Blog</a>
+                  <button type="button">Blog</button>
                 </li>
                 <li>
-                  <a href="#">Press</a>
+                  <button type="button">Press</button>
                 </li>
               </ul>
             </div>
@@ -258,16 +258,16 @@ const Home = () => {
               <h3>Support</h3>
               <ul>
                 <li>
-                  <a href="#">Help Center</a>
+                  <button type="button">Help Center</button>
                 </li>
                 <li>
-                  <a href="#">Contact Us</a>
+                  <button type="button">Contact Us</button>
                 </li>
                 <li>
-                  <a href="#">Privacy Policy</a>
+                  <button type="button">Privacy Policy</button>
                 </li>
                 <li>
-                  <a href="#">Terms of Service</a>
+                  <button type="button">Terms of Service</button>
                 </li>
               </ul>
             </div>

@@ -12,13 +12,16 @@ import {
   Phone,
   Calendar,
 } from "lucide-react"
-import "./signup.css"
+import { useAuth } from "../context/AuthContext"
+import { useNavigate } from "react-router-dom"
 
 const SignupForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState({})
+  const { signUp } = useAuth()
+  const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -79,47 +82,21 @@ const SignupForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!validateForm()) return;
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      const response = await fetch('http://localhost:5000/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          dateOfBirth: formData.dateOfBirth,
-          password: formData.password
-        }),
+      await signUp(formData.email, formData.password, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone: formData.phone,
+        date_of_birth: formData.dateOfBirth,
       });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Signup failed');
-      }
-  
-      const data = await response.json();
-      console.log('Signup successful:', data);
-      alert('Signup successful! You can now log in.');
-      
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        dateOfBirth: "",
-        password: "",
-        confirmPassword: "",
-        acceptTerms: false,
-      });
+
+      alert("Signup successful! You can now log in.");
+      navigate("/login");
     } catch (err) {
       console.error('Signup error:', err);
       alert(err.message || 'Signup failed. Please try again.');

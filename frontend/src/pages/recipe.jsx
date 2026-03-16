@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import './store.css';
 import recipes from './recipedata';
+import { fetchRecipes, searchIngredients } from "../api/recipes";
 
 const Store = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,18 +17,68 @@ const Store = () => {
   const [filterType, setFilterType] = useState('');
   const [sortOrder, setSortOrder] = useState('');
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [backendRecipes, setBackendRecipes] = useState(null);
+  const [ingredientSuggestions, setIngredientSuggestions] = useState([]);
 
-  const allIngredients = [...new Set(recipes.flatMap(r => r.ingredients))];
-  const filteredIngredients = allIngredients.filter(ing =>
-    ing.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Include user-created recipes (saved in localStorage) so their ingredients are searchable too
+  const userRecipes = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("userRecipes")) || [];
+    } catch {
+      return [];
+    }
+  })();
+
+  // Load recipes from Flask (data.json). If it fails, fallback to local static data.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetchRecipes();
+        if (!cancelled) setBackendRecipes(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) setBackendRecipes([]); // keep app functional; will fallback below
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const baseRecipes =
+    backendRecipes && backendRecipes.length > 0 ? backendRecipes : recipes;
+  const allRecipes = [...baseRecipes, ...userRecipes];
+
+  const allIngredients = [
+    ...new Set(
+      allRecipes
+        .flatMap((r) => r.ingredients || [])
+        .map((ing) => String(ing).trim())
+        .filter(Boolean)
+        .map((ing) => ing.toLowerCase())
+    ),
+  ];
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredIngredients =
+    ingredientSuggestions.length > 0
+      ? ingredientSuggestions
+      : allIngredients.filter((ing) => ing.includes(normalizedSearchTerm));
 
   useEffect(() => {
     if (searchTerm.length >= 2) {
       setIsDropdownVisible(true);
-      // Here you would make the backend call
+      (async () => {
+        try {
+          const suggestions = await searchIngredients(searchTerm, 20);
+          setIngredientSuggestions(Array.isArray(suggestions) ? suggestions : []);
+        } catch {
+          setIngredientSuggestions([]);
+        }
+      })();
     } else {
       setIsDropdownVisible(false);
+      setIngredientSuggestions([]);
     }
   }, [searchTerm]);
 
@@ -43,9 +94,14 @@ const Store = () => {
   };
 
   const addIngredient = (ingredient) => {
-    const normalized = ingredient.toLowerCase();
+    const normalized = String(ingredient).trim().toLowerCase();
+    if (!normalized) return;
 
-    if (!allIngredients.some(ing => ing.toLowerCase() === normalized)) {
+    // Accept exact match OR substring match (e.g., user types "parsley" and we have "fresh parsley")
+    const isValid =
+      allIngredients.includes(normalized) ||
+      allIngredients.some((ing) => ing.includes(normalized));
+    if (!isValid) {
       setErrorMessage(`"${ingredient}" is not a valid ingredient.`);
       return;
     }
@@ -92,7 +148,7 @@ const Store = () => {
     setSortOrder(sortOrder === 'up' ? 'down' : 'up');
   };
 
-  const filteredRecipes = recipes
+  const filteredRecipes = allRecipes
     .map(recipe => ({
       ...recipe,
       matchPercentage: getMatchPercentage(recipe.ingredients),

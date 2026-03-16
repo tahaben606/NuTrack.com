@@ -2,22 +2,18 @@
 
 import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { Menu, X, Utensils, ChevronDown, User, LogOut } from "lucide-react"
+import { Menu, X, Utensils, User, LogOut } from "lucide-react"
 import "./navbar.css"
+
+import { useAuth } from "../context/AuthContext"
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [user, setUser] = useState(null)
+  const { user, signOut } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const isHomePage = location.pathname === "/"
-
-  // Check for logged in user on component mount and route changes
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'))
-    setUser(userData)
-  }, [location])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +25,7 @@ const Navbar = () => {
       window.removeEventListener("scroll", handleScroll)
     }
   }, [])
-
+  
   // Close mobile menu when changing routes
   useEffect(() => {
     setIsMobileMenuOpen(false)
@@ -39,9 +35,8 @@ const Navbar = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('user')
-    setUser(null)
+  const handleLogout = async () => {
+    await signOut()
     navigate('/login')
   }
 
@@ -90,7 +85,7 @@ const Navbar = () => {
               <div className="user-profile">
                 <div className="user-info">
                   <User size={18} className="user-icon" />
-                  <span className="user-name">{user.firstName}</span>
+                  <span className="user-name">{user.user_metadata?.first_name || user.email}</span>
                 </div>
                 <button onClick={handleLogout} className="logout-btn">
                   <LogOut size={18} />

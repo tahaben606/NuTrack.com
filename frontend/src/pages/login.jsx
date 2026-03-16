@@ -4,13 +4,15 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Leaf, Eye, EyeOff, Loader, Mail, Lock } from "lucide-react"
 import "./login.css"
+import { useAuth } from "../context/AuthContext"
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()  // Changed from useRouter to useNavigate
+  const navigate = useNavigate()
+  const { signIn } = useAuth()
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -19,7 +21,7 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!formData.email || !formData.password) {
       setError("Please enter both email and password")
       return
@@ -28,28 +30,13 @@ const LoginForm = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed')
-      }
-
-      localStorage.setItem('user', JSON.stringify(data.user))
-      navigate('/')  // Changed from router.push to navigate
-      
+      await signIn(formData.email, formData.password);
+      navigate("/");
     } catch (err) {
-      console.error('Login error:', err)
-      setError(err.message || 'Login failed. Please try again.')
+      console.error("Login error:", err);
+      setError(err.message || "Login failed. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Clock, Flame, Star, ChefHat, Utensils } from "lucide-react";
-import defaultRecipes from "./recipedata";
+import { fetchRecipeById, updateRecipe } from "../api/recipes";
 import "./recipedetails.css";
 
 const RecipeDetails = () => {
@@ -14,23 +14,21 @@ const RecipeDetails = () => {
   const [userRating, setUserRating] = useState(null);
 
   useEffect(() => {
-    const loadRecipe = () => {
+    const loadRecipe = async () => {
       try {
-        // Combine default recipes with user recipes from localStorage
-        const userRecipes = JSON.parse(localStorage.getItem("userRecipes")) || [];
-        const allRecipes = [...defaultRecipes, ...userRecipes];
-        
-        const foundRecipe = allRecipes.find(r => r.id.toString() === id);
-        
+        setLoading(true);
+        const foundRecipe = await fetchRecipeById(id);
+
         if (foundRecipe) {
           setRecipe(foundRecipe);
-          setUserRating(foundRecipe.rating);
+          setUserRating(foundRecipe.rating || 0);
         } else {
           setError('Recipe not found');
         }
-        setLoading(false);
       } catch (err) {
-        setError('Failed to load recipe');
+        console.error("Error loading recipe details:", err);
+        setError('Failed to load recipe. Please check your connection.');
+      } finally {
         setLoading(false);
       }
     };
@@ -38,18 +36,14 @@ const RecipeDetails = () => {
     loadRecipe();
   }, [id]);
 
-  const handleRatingClick = (newRating) => {
+  const handleRatingClick = async (newRating) => {
     setUserRating(newRating);
-
-    // Update rating in localStorage
-    const userRecipes = JSON.parse(localStorage.getItem("userRecipes")) || [];
-    const updatedRecipes = userRecipes.map(r => 
-      r.id.toString() === id ? { ...r, rating: newRating } : r
-    );
-    localStorage.setItem("userRecipes", JSON.stringify(updatedRecipes));
-    
-    // Update the displayed recipe
-    setRecipe(prev => ({ ...prev, rating: newRating }));
+    try {
+      await updateRecipe(id, { rating: newRating });
+      setRecipe(prev => ({ ...prev, rating: newRating }));
+    } catch (err) {
+      console.error("Failed to update rating:", err);
+    }
   };
 
   if (loading) {
@@ -96,10 +90,10 @@ const RecipeDetails = () => {
       <div className="recipe-details-content">
         <div className="recipe-details-main">
           <div className="recipe-details-image-container">
-            <img 
-              src={recipe.image || "/placeholder.svg"} 
-              alt={recipe.name} 
-              className="recipe-details-image" 
+            <img
+              src={recipe.image || "/placeholder.svg"}
+              alt={recipe.name}
+              className="recipe-details-image"
             />
 
             <div className="recipe-details-stats">
@@ -115,7 +109,7 @@ const RecipeDetails = () => {
                 <Clock size={18} className="recipe-details-stat-icon" />
                 <div className="recipe-details-stat-content">
                   <span className="recipe-details-stat-value">
-                    {recipe.timeToComplete.replace(" minutes", "").replace(" min", "")}
+                    {recipe.timeToComplete ? recipe.timeToComplete.replace(" minutes", "").replace(" min", "") : "0"}
                   </span>
                   <span className="recipe-details-stat-label">Minutes</span>
                 </div>
@@ -129,9 +123,9 @@ const RecipeDetails = () => {
                     size={20}
                     className={`rating-star ${userRating >= star ? "filled" : ""}`}
                     onClick={() => handleRatingClick(star)}
-                    style={{ 
-                      cursor: "pointer", 
-                      color: userRating >= star ? "#ffc107" : "#ccc" 
+                    style={{
+                      cursor: "pointer",
+                      color: userRating >= star ? "#ffc107" : "#ccc"
                     }}
                   />
                 ))}
@@ -182,7 +176,7 @@ const RecipeDetails = () => {
           <div className="recipe-details-ingredients">
             <h2>Ingredients</h2>
             <ul className="ingredients-list">
-              {recipe.ingredients.map((ingredient, index) => (
+              {(recipe.ingredients || []).map((ingredient, index) => (
                 <li key={index} className="ingredient-item">
                   <span className="ingredient-name">{ingredient}</span>
                   {recipe.quantities && recipe.quantities[index] && (
@@ -201,7 +195,6 @@ const RecipeDetails = () => {
               <span className="nutrition-label">Calories</span>
               <span className="nutrition-value">{recipe.calories} kcal</span>
             </div>
-            {/* Additional nutrition facts could be added here */}
           </div>
         </div>
       </div>

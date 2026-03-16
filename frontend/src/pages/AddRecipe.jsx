@@ -2,10 +2,13 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { addRecipe } from "../api/recipes";
 import "./AddRecipe.css";
 
 const AddRecipe = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [name, setName] = useState("");
   const [chef, setChef] = useState("");
@@ -13,7 +16,7 @@ const AddRecipe = () => {
   const [calories, setCalories] = useState("");
   const [timeToComplete, setTimeToComplete] = useState("");
   const [ingredients, setIngredients] = useState([""]);
-  const [rating, setRating] = useState(5);
+  const [rating] = useState(5);
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState([""]);
 
@@ -51,27 +54,32 @@ const AddRecipe = () => {
     setSteps(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const userId = user?.id;
+
     const newRecipe = {
-      id: Date.now(),
       name,
       chef,
       description,
-      image: image || "/placeholder.svg",
-      calories: parseInt(calories),
-      timeToComplete,
+      image: image || "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=400&q=80",
+      calories: parseInt(calories) || 0,
+      timeToComplete: timeToComplete || "0 minutes",
       ingredients: ingredients.filter((ing) => ing.trim() !== ""),
-      rating: parseFloat(rating),
+      rating: parseFloat(rating) || 5,
       steps: steps.filter((step) => step.trim() !== ""),
+      userId: userId // Backend requires userId
     };
 
-    const existingRecipes = JSON.parse(localStorage.getItem("userRecipes")) || [];
-    existingRecipes.push(newRecipe);
-    localStorage.setItem("userRecipes", JSON.stringify(existingRecipes));
-
-    navigate("/recipe");
+    try {
+      await addRecipe(newRecipe);
+      navigate("/recipe");
+    } catch (err) {
+      console.error("Failed to add recipe:", err);
+      // In a 100% frontend app, we might want to show a UI error instead of just console
+      alert("Failed to save recipe to database. Please check your connection.");
+    }
   };
 
   return (

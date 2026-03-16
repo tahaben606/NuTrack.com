@@ -1,4 +1,21 @@
 {
+  "name": "ntrack",
+  "version": "1.0.0",
+  "description": "NuTrack - Smart Nutrition Tracking App",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:backend": "cd backend && python app.py",
+    "build": "cd frontend && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt"
+  },
+  "keywords": ["nutrition", "tracking", "recipe", "health", "ai"],
+  "author": "NuTrack Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
   "dependencies": {
     "react-router-dom": "^7.6.1"
   }
